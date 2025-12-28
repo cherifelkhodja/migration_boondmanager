@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: siret-extractor-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - INSEE_API_KEY=${INSEE_API_KEY}
+      - RNE_JWT_TOKEN=${RNE_JWT_TOKEN}
+      - CORS_ORIGINS=http://localhost,http://localhost:80,http://frontend
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: siret-extractor-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Optional Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: siret-extractor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    profiles:
+      - with-cache
+
+volumes:
+  redis_data:
