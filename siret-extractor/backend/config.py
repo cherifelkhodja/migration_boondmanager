@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     # API INSEE SIRENE
     insee_api_key: str = ""
-    insee_base_url: str = "https://api.insee.fr/entreprises/sirene/V3.11"
+    insee_base_url: str = "https://api.insee.fr/api-sirene/3.11"
     insee_rate_limit: int = 30  # requests per period
     insee_rate_period: int = 60  # seconds
 
