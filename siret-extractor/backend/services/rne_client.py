@@ -9,6 +9,17 @@ from config import get_settings, ROLES_MAPPING
 logger = logging.getLogger(__name__)
 
 
+def get_first_prenom(prenoms) -> str:
+    """Extract first prenom from string or list."""
+    if not prenoms:
+        return ""
+    if isinstance(prenoms, list):
+        return prenoms[0] if prenoms else ""
+    if isinstance(prenoms, str):
+        return prenoms.split()[0] if prenoms else ""
+    return str(prenoms)
+
+
 class RNEClient:
     """Client for interacting with RNE INPI API."""
 
@@ -152,7 +163,7 @@ class RNEClient:
                     descr = entrepreneur.get("descriptionPersonne", {})
                     return {
                         "nom": descr.get("nom", ""),
-                        "prenom": (descr.get("prenoms", "") or "").split()[0] if descr.get("prenoms") else "",
+                        "prenom": get_first_prenom(descr.get("prenoms")),
                         "fonction": "Entrepreneur Individuel",
                         "civilite": self._determine_civilite(descr),
                     }
@@ -170,10 +181,9 @@ class RNEClient:
                     ):
                         individu = p.get("individu", {})
                         descr = individu.get("descriptionPersonne", {})
-                        prenoms = descr.get("prenoms", "") or ""
                         return {
                             "nom": descr.get("nom", ""),
-                            "prenom": prenoms.split()[0] if prenoms else "",
+                            "prenom": get_first_prenom(descr.get("prenoms")),
                             "fonction": self._map_role(role),
                             "civilite": self._determine_civilite(descr),
                         }
@@ -183,11 +193,10 @@ class RNEClient:
                 if p.get("typeDePersonne") == "PERSONNE_PHYSIQUE":
                     individu = p.get("individu", {})
                     descr = individu.get("descriptionPersonne", {})
-                    prenoms = descr.get("prenoms", "") or ""
                     role = p.get("roleEntreprise", "")
                     return {
                         "nom": descr.get("nom", ""),
-                        "prenom": prenoms.split()[0] if prenoms else "",
+                        "prenom": get_first_prenom(descr.get("prenoms")),
                         "fonction": self._map_role(role),
                         "civilite": self._determine_civilite(descr),
                     }
@@ -231,7 +240,7 @@ class RNEClient:
                 return "Mme"
 
         # Fallback: try to guess from first name
-        prenom = (description.get("prenoms", "") or "").split()[0].lower() if description.get("prenoms") else ""
+        prenom = get_first_prenom(description.get("prenoms")).lower()
 
         # Common French feminine first names endings
         feminine_endings = ("e", "a", "ine", "ette", "elle", "ie")
